@@ -5,7 +5,7 @@ const config = {
   name: 'esv7',
   connector: 'esv6',
   index: 'catalog',
-  apiVersion: '7',
+  version: 7,
   defaultSize: '',
   configuration: {
     node: process.env.ELASTIC_SEARCH_HOST,
