@@ -46,7 +46,7 @@ function myClassDecorator(spec: MyClassMetaData): ClassDecorator {
 /**
  * A simple controller to bounce back http requests
  */
-@myClassDecorator({name: 'code-education'})
+// @myClassDecorator({name: 'code-education'})
 export class PingController {
   constructor(@inject(RestBindings.Http.REQUEST) private req: Request,
               @repository(CategoryRepository) private categoryRepo: CategoryRepository) {}
@@ -68,12 +68,13 @@ export class PingController {
   }
   @get('/categories')
   async index(){
+    const id = Math.floor(Math.random() * 1000) + '';
 
     await this.categoryRepo.create({
-      id: '4',
-      name: 'wefwef',
-      description: '44444',
-    })
+      id: id,
+      name: 'Teste' + id,
+      description: 'testando id ' +id,
+    });
     return this.categoryRepo.find();
   }
 }
