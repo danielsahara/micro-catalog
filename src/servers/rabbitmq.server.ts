@@ -1,6 +1,8 @@
 import {Context} from '@loopback/context'
 import {Server} from "@loopback/core";
-import {connect, Connection} from 'amqplib';
+import {Channel, connect, Connection, Options, Replies} from 'amqplib';
+import AssertQueue = Replies.AssertQueue;
+import AssertExchange = Replies.AssertExchange;
 
 export class RabbitmqServer extends Context implements Server{
     private _listening: boolean;
@@ -14,7 +16,23 @@ export class RabbitmqServer extends Context implements Server{
         })
         console.log('starting')
         this._listening = true;
-        return undefined;
+        this.boot();
+    }
+
+    async boot(){
+        const channel: Channel = await this.conn.createChannel();
+        const queue: AssertQueue = await channel.assertQueue('first-queue');
+        const exchange: AssertExchange = await channel.assertExchange('amq.direct', 'direct');
+
+        await channel.bindQueue(queue.queue, exchange.exchange, 'minha-routing-key');
+
+        // const result = channel.sendToQueue('first-queue', Buffer.from('hello world'))
+        await channel.publish('amq.direct', 'minha-routing-key', Buffer.from('publicado por routing key'));
+
+        channel.consume(queue.queue, (message) => {
+            console.log(message?.content.toString())
+        });
+        // console.log(result);
     }
 
     async stop(): Promise<void> {
