@@ -6,6 +6,8 @@ import path from 'path';
 import {MySequence} from './sequence';
 import {RabbitmqServer} from "./servers/rabbitmq.server";
 import {RestComponent, RestServer} from "@loopback/rest";
+import {RestExplorerBindings} from "@loopback/rest-explorer";
+import {RestExplorerComponent} from "./components/rest-explorer.component";
 
 export {ApplicationConfig};
 
@@ -24,10 +26,11 @@ export class MicroCatalogApplication extends BootMixin(
     // this.static('/', path.join(__dirname, '../public'));
 
     // Customize @loopback/rest-explorer configuration here
-    // this.configure(RestExplorerBindings.COMPONENT).to({
-    //   path: '/explorer',
-    // });
-    // this.component(RestExplorerComponent);
+    this.bind(RestExplorerBindings.CONFIG).to({
+      path: '/explorer',
+    });
+
+    this.component(RestExplorerComponent);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
