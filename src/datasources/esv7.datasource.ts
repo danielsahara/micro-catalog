@@ -16,6 +16,18 @@ const config = {
   mappingProperties:{
     docType: {
       type: 'keyword'
+    },
+    id: {
+      type: "keyword",
+    },
+    name: {
+      type: "text",
+      fields: {
+        keyword: {
+          type: "keyword",
+          ignore_above: 256
+        }
+      }
     }
   }
 };
