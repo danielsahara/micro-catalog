@@ -27,13 +27,13 @@ export class Category extends Entity {
         type: 'date',
         required: true,
     })
-    created_at: Date;
+    created_at: string;//iso 8601 yyyy-mm-ddt00:00:00
 
     @property({
         type: 'date',
         required: true
     })
-    updated_at: Date;
+    updated_at: string;
 
   // Indexer property to allow additional data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
