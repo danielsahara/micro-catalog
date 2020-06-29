@@ -1,11 +1,14 @@
 import {Context, inject} from '@loopback/context'
-import {Server} from "@loopback/core";
+import {Application, CoreBindings, Server} from "@loopback/core";
 import {Channel, ConfirmChannel, Options, Replies} from 'amqplib';
 import {CategoryRepository} from "../repositories";
 import {repository} from "@loopback/repository";
 import {Category} from "../models";
 import {RabbitmqBindings} from "../keys";
 import {AmqpConnectionManager, AmqpConnectionManagerOptions, ChannelWrapper, connect} from 'amqp-connection-manager';
+import {MetadataInspector} from '@loopback/metadata';
+import {RABBITMQ_SUBSCRIBE_DECORATOR, RabbitmqSubscribeMetadata} from "../decorators/rabbitmq-subscribe.decorator";
+import {CategorySyncService} from "../services";
 import AssertQueue = Replies.AssertQueue;
 import AssertExchange = Replies.AssertExchange;
 
@@ -24,10 +27,12 @@ export class RabbitmqServer extends Context implements Server{
     private _channelManager: ChannelWrapper;
     channel: Channel;
 
-    constructor(@repository(CategoryRepository)  private categoryRepo: CategoryRepository,
-    @inject(RabbitmqBindings.CONFIG) private config: RabbitmqConfig
+    constructor(
+        @inject(CoreBindings.APPLICATION_INSTANCE) public app: Application,
+        @repository(CategoryRepository)  private categoryRepo: CategoryRepository,
+        @inject(RabbitmqBindings.CONFIG) private config: RabbitmqConfig
     ) {
-        super();
+        super(app);
         console.log(config);
     }
 
@@ -43,6 +48,12 @@ export class RabbitmqServer extends Context implements Server{
             console.log(`Failed to setup rabbitmq channel - name: ${name} | error: ${err.message}`)
         });
         await this.setupExchanges();
+
+        const service = this.getSync<CategorySyncService>('services.CategorySyncService');
+        const metadata = MetadataInspector.getAllMethodMetadata<RabbitmqSubscribeMetadata>(
+            RABBITMQ_SUBSCRIBE_DECORATOR, service
+        );
+        console.log(metadata);
         // this.boot();
     }
 
