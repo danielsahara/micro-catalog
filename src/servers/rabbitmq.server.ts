@@ -48,8 +48,8 @@ export class RabbitmqServer extends Context implements Server{
         });
         await this.setupExchanges();
 
-        // @ts-ignore
-        console.log(this.getSubscribers()[0][0]['method']());
+        await this.bindSubscribers();
+
         // this.boot();
     }
 
@@ -64,7 +64,28 @@ export class RabbitmqServer extends Context implements Server{
         })
     }
 
-    private getSubscribers(){
+    private async bindSubscribers() {
+        this.getSubscribers()
+            .map(async (item) => {
+                await this.channelManager.addSetup(async (channel: ConfirmChannel) => {
+                    const {exchange, queue, routingKey, queueOptions} = item.metadata;
+                    const assertQueue = await channel.assertQueue(
+                        queue ?? '',
+                        queueOptions ?? undefined
+                    )
+
+                    const routingKeys = Array.isArray(routingKey) ? routingKey : [routingKey];
+
+                    await Promise.all(
+                        routingKeys.map((x) => channel.bindQueue(assertQueue.queue, exchange, x))
+                    )
+
+
+                });
+            });
+    }
+
+    private getSubscribers(): {method: Function, metadata: RabbitmqSubscribeMetadata}[]{
         const bindings: Array<Readonly<Binding>> = this.find('services.*');
 
         return bindings.map(
@@ -91,13 +112,10 @@ export class RabbitmqServer extends Context implements Server{
                 }
                 return methods;
             }
-        )
-
-        // const service = this.getSync<CategorySyncService>('services.CategorySyncService');
-        // const metadata = MetadataInspector.getAllMethodMetadata<RabbitmqSubscribeMetadata>(
-        //     RABBITMQ_SUBSCRIBE_DECORATOR, service
-        // );
-        // console.log(services);
+        ).reduce((collection: any, item: any) => {
+            collection.push(...item);
+            return collection;
+        }, [])
     }
 
     async boot(){

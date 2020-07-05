@@ -14,7 +14,6 @@ export class CategorySyncService {
   })
   handler(){
     console.log(this.categoryRepo.entityClass, 'handler');
-    // this.repository.create();
   }
 
   @rabbitmqSubscribe({
