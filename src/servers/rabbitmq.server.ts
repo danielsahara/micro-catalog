@@ -3,13 +3,10 @@ import {Application, CoreBindings, Server} from "@loopback/core";
 import {Channel, ConfirmChannel, Options, Replies} from 'amqplib';
 import {CategoryRepository} from "../repositories";
 import {repository} from "@loopback/repository";
-import {Category} from "../models";
 import {RabbitmqBindings} from "../keys";
 import {AmqpConnectionManager, AmqpConnectionManagerOptions, ChannelWrapper, connect} from 'amqp-connection-manager';
 import {MetadataInspector} from '@loopback/metadata';
 import {RABBITMQ_SUBSCRIBE_DECORATOR, RabbitmqSubscribeMetadata} from "../decorators/rabbitmq-subscribe.decorator";
-import AssertQueue = Replies.AssertQueue;
-import AssertExchange = Replies.AssertExchange;
 
 // ack - reconhecida
 // nack - rejeitada
@@ -80,7 +77,11 @@ export class RabbitmqServer extends Context implements Server{
                         routingKeys.map((x) => channel.bindQueue(assertQueue.queue, exchange, x))
                     )
 
-
+                    await this.consume({
+                        channel,
+                        queue: assertQueue.queue,
+                        method: item.method
+                    });
                 });
             });
     }
@@ -118,50 +119,32 @@ export class RabbitmqServer extends Context implements Server{
         }, [])
     }
 
-    async boot(){
-        // @ts-ignore
-        this.channel = await this.conn.createChannel();
-        const queue: AssertQueue = await this.channel.assertQueue('micro-catalog/sync-videos');
-        const exchange: AssertExchange = await this.channel.assertExchange('amq.topic', 'topic');
+    private async consume({channel, queue, method}: { channel: ConfirmChannel, queue: string, method: Function }) {
+        await channel.consume(queue, async message => {
+            try {
+                if (!message){
+                    throw new Error('Received null message');
+                }
 
-        await this.channel.bindQueue(queue.queue, exchange.exchange, 'model.*.*');
+                const content = message.content;
 
-        // const result = this.channel.sendToQueue('first-queue', Buffer.from('hello world'))
-        // await this.channel.publish('amq.direct', 'minha-routing-key', Buffer.from('publicado por routing key'));
-
-        this.channel.consume(queue.queue, (message) => {
-            if (!message){
-                return;
+                if (content){
+                    let data;
+                    try {
+                        data = JSON.parse(content.toString());
+                    }
+                    catch (e) {
+                        data = null;
+                    }
+                    console.log(data);
+                    await method({data, message, channel});
+                    channel.ack(message);
+                }
+            } catch (e) {
+                console.error(e);
+                //politica de resposta
             }
-            const data = JSON.parse(message?.content.toString());
-            const [model, event] = message.fields.routingKey.split('.').slice(1);
-            this.sync({model, event, data})
-                .then(() => this.channel.ack(message))
-                .catch((error) => {
-                    console.log(error)
-                    this.channel.reject(message, false)
-                });
         });
-        // console.log(result);
-    }
-
-    async sync({model, event, data}: {model: string, event: string, data: Category}){
-        if (model === 'category'){
-            switch (event) {
-                case 'created':
-                    await this.categoryRepo.create({
-                        ...data,
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString(),
-                    });
-                    break;
-                case 'updated':
-                    await this.categoryRepo.updateById(data.id, data);
-                    break;
-                case 'deleted':
-                    await this.categoryRepo.deleteById(data.id);
-            }
-        }
     }
 
     async stop(): Promise<void> {

@@ -5,23 +5,24 @@ import {CategoryRepository} from "../repositories";
 
 @bind({scope: BindingScope.TRANSIENT})
 export class CategorySyncService {
-  constructor(@repository(CategoryRepository)  private categoryRepo: CategoryRepository) {}
+    constructor(@repository(CategoryRepository) private categoryRepo: CategoryRepository) {
+    }
 
-  @rabbitmqSubscribe({
-    exchange: 'amq.topic',
-    queue: 'x',
-    routingKey: 'model.category.*'
-  })
-  handler(){
-    console.log(this.categoryRepo.entityClass, 'handler');
-  }
+    @rabbitmqSubscribe({
+        exchange: 'amq.topic',
+        queue: 'x',
+        routingKey: 'model.category.*'
+    })
+    handler({data}: {data: any}) {
+        console.log(data);
+    }
 
-  @rabbitmqSubscribe({
-    exchange: 'amq.topic',
-    queue: 'x1',
-    routingKey: 'model.category1.*'
-  })
-  handler1(){
-    console.log(this.categoryRepo.entityClass, 'handler1');
-  }
+    @rabbitmqSubscribe({
+        exchange: 'amq.topic',
+        queue: 'x1',
+        routingKey: 'model.category1.*'
+    })
+    handler1({data}: {data: any}) {
+        console.log(data);
+    }
 }
