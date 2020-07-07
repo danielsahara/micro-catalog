@@ -4,7 +4,7 @@ import {Message} from "amqplib";
 import {repository} from "@loopback/repository";
 import {CastMemberRepository} from "../repositories";
 
-@bind({scope: BindingScope.TRANSIENT})
+@bind({scope: BindingScope.SINGLETON})
 export class CastMemberSyncService {
     constructor(@repository(CastMemberRepository) private repo: CastMemberRepository) {
     }

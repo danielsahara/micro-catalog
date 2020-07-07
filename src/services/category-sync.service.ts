@@ -4,7 +4,7 @@ import {repository} from "@loopback/repository";
 import {CategoryRepository} from "../repositories";
 import {Message} from "amqplib";
 
-@bind({scope: BindingScope.TRANSIENT})
+@bind({scope: BindingScope.SINGLETON})
 export class CategorySyncService {
     constructor(@repository(CategoryRepository) private repo: CategoryRepository) {
     }
