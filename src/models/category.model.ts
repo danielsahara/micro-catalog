@@ -1,4 +1,5 @@
 import {Entity, model, property} from '@loopback/repository';
+import {getModelSchemaRef} from "@loopback/rest";
 
 @model()
 export class Category extends Entity {
@@ -57,3 +58,9 @@ export interface CategoryRelations {
 }
 
 export type CategoryWithRelations = Category & CategoryRelations;
+
+const schema = getModelSchemaRef(Category, {
+    title: 'New Category',
+    partial: true
+})
+console.dir(schema, {depth: 8})
