@@ -1,3 +1,4 @@
+import './bootstrap';
 import * as commands from './commands';
 import {default as chalk} from 'chalk';
 
