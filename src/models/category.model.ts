@@ -15,6 +15,10 @@ export class Category extends Entity {
     @property({
         type: 'string',
         required: true,
+        jsonSchema: {
+            minLength: 1,
+            maxLength: 255
+        }
     })
     name: string;
 
@@ -40,7 +44,7 @@ export class Category extends Entity {
 
     @property({
         type: 'date',
-        required: true
+        required: true,
     })
     updated_at: string;
 

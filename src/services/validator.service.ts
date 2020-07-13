@@ -1,18 +1,53 @@
 import {bind, BindingScope} from '@loopback/core';
 import {repository} from "@loopback/repository";
 import {CategoryRepository} from "../repositories";
-import {getModelSchemaRef, validateRequestBody} from "@loopback/rest";
+import {AjvFactory, getModelSchemaRef, RestBindings, validateRequestBody} from "@loopback/rest";
+import {inject} from '@loopback/core';
+
+interface ValidateOptions<T> {
+    data: object;
+    entityClass: Function & {prototype: T}
+}
 
 @bind({scope: BindingScope.SINGLETON})
 export class ValidatorService {
-    constructor(@repository(CategoryRepository) private repo: CategoryRepository) {
-        super();
+
+    cache = new Map()
+    constructor(@repository(CategoryRepository) private repo: CategoryRepository,
+                @inject(RestBindings.AJV_FACTORY) private ajvFactory: AjvFactory) {
+
     }
 
-    async validate({data, entityClass}): Promise<boolean> {
+    async validate<T extends object>({data, entityClass}: ValidateOptions<T>){
         const modelSchema = getModelSchemaRef(entityClass);
 
-        validateRequestBody({value: data, schema: modelSchema});
+        if (!modelSchema){
+            const error = new Error('The parameter entityClass is not a entity')
+            error.name = "NoEntityClass";
+            throw error;
+        }
+        const schemaRef = {$ref: modelSchema.$ref};
+        const schemaName = Object.keys(modelSchema.definitions)[0];
+
+        if (!this.cache.has(schemaName)){
+            this.cache.set(schemaName, modelSchema.definitions[schemaName]);
+        }
+
+        const globalSchemas = Array.from(this.cache).reduce<any>(
+            (obj, [key, value]) => {obj[key] = value; return obj},
+            {}
+        )
+
+        console.dir(globalSchemas, {depth: 8})
+
+        await validateRequestBody(
+            {value: data, schema: modelSchema},
+            {required: true, content: {}},
+            globalSchemas,
+            {
+                ajvFactory: this.ajvFactory
+            }
+            );
 
     }
 }

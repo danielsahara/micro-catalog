@@ -8,6 +8,7 @@ import {RabbitmqServer} from "./servers/rabbitmq.server";
 import {RestComponent, RestServer} from "@loopback/rest";
 import {RestExplorerBindings} from "@loopback/rest-explorer";
 import {RestExplorerComponent} from "./components/rest-explorer.component";
+import {ValidatorsComponent} from "./components/validators.component";
 
 export {ApplicationConfig};
 
@@ -31,6 +32,7 @@ export class MicroCatalogApplication extends BootMixin(
     });
 
     this.component(RestExplorerComponent);
+    this.component(ValidatorsComponent);
 
     this.projectRoot = __dirname;
     // Customize @loopback/boot Booter Conventions here
