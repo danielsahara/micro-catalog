@@ -9,9 +9,6 @@ export class Category extends Entity {
         id: true,
         generated: false,
         required: true,
-        jsonSchema: {
-            exists: ['Category', 'id']
-        }
     })
     id: string;
 
