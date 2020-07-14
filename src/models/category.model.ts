@@ -9,6 +9,9 @@ export class Category extends Entity {
         id: true,
         generated: false,
         required: true,
+        jsonSchema: {
+            exists: ['Category', 'id']
+        }
     })
     id: string;
 
@@ -17,7 +20,7 @@ export class Category extends Entity {
         required: true,
         jsonSchema: {
             minLength: 1,
-            maxLength: 255
+            maxLength: 255,
         }
     })
     name: string;
