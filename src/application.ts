@@ -53,25 +53,25 @@ export class MicroCatalogApplication extends BootMixin(
   async boot() {
     await super.boot();
 
-    const validator = this.getSync<ValidatorService>('services.ValidatorService');
-
-    try {
-      await validator.validate({
-        data: {
-          id: ['1-cat', '2-cat']
-        },
-        entityClass: Category
-      })
-    } catch (e) {
-      console.dir(e, {depth: 8})
-    }
-
-    try {
-      data: {
-      }
-      entityClass: Genre
-    } catch (e) {
-      console.dir(e, {depth: 8})
-    }
+    // const validator = this.getSync<ValidatorService>('services.ValidatorService');
+    //
+    // try {
+    //   await validator.validate({
+    //     data: {
+    //       id: ['1-cat', '2-cat']
+    //     },
+    //     entityClass: Category
+    //   })
+    // } catch (e) {
+    //   console.dir(e, {depth: 8})
+    // }
+    //
+    // try {
+    //   data: {
+    //   }
+    //   entityClass: Genre
+    // } catch (e) {
+    //   console.dir(e, {depth: 8})
+    // }
   }
 }
