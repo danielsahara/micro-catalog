@@ -1,6 +1,12 @@
 import {Entity, model, property} from '@loopback/repository';
 import {getModelSchemaRef} from "@loopback/rest";
 
+export interface SmallCategory {
+    id: string;
+    name: string;
+    is_active: boolean;
+}
+
 @model()
 export class Category extends Entity {
 
